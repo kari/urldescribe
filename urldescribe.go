@@ -3,6 +3,7 @@ package urldescribe
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,16 +17,19 @@ func DescribeURL(rawurl string) string {
 
 	url, err := parseURL(rawurl)
 	if err != nil {
+		log.Print(err)
 		return "" // Can't parse input
 	}
 
 	resp, err := getPage(url.String())
 	if err != nil {
+		log.Print(err)
 		return "" // error fetching page
 	}
 	defer resp.Body.Close()
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
+		log.Print(err)
 		return err.Error() // Error parsing HTML
 	}
 
@@ -58,7 +62,7 @@ func getPage(url string) (*http.Response, error) {
 		return nil, err // Request failed
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Request responded with status %d", resp.StatusCode) // Request didn't return 200 OK
+		return nil, fmt.Errorf("Request responded with %s", resp.Status) // Request didn't return 200 OK
 	}
 	if !strings.HasPrefix(resp.Header.Get("Content-Type"), "text/html") {
 		// fmt.Println(resp.Header.Get("Content-Type"))
